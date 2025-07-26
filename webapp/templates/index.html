@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Нумерологический калькулятор{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <h2 class="mb-3">Калькулятор</h2>
+    <form method="post" class="needs-validation" novalidate>
+      <div class="mb-3">
+        <label for="calc_type" class="form-label">Тип расчёта</label>
+        <select id="calc_type" name="calc_type" class="form-select" required onchange="toggleInputs()">
+          <option value="life_path">Число жизненного пути (дата рождения)</option>
+          <option value="expression">Число судьбы / выражения (полное имя)</option>
+        </select>
+      </div>
+      <div class="mb-3" id="birthDateGroup">
+        <label for="birth_date" class="form-label">Дата рождения (ГГГГ-ММ-ДД)</label>
+        <input type="date" id="birth_date" name="birth_date" class="form-control">
+      </div>
+      <div class="mb-3 d-none" id="nameGroup">
+        <label for="full_name" class="form-label">Полное имя</label>
+        <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Иван Иванов">
+      </div>
+      <button type="submit" class="btn btn-primary">Рассчитать</button>
+    </form>
+  </div>
+  <div class="col-md-6">
+    <h2 class="mb-3">Последние расчёты</h2>
+    {% if history %}
+      <ul class="list-group">
+        {% for item in history %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>
+            <span class="badge me-2" style="background-color: {{ item.color }}">&nbsp;</span>
+            {{ item.type }}: {{ item.value }}
+          </span>
+          <span class="fw-bold">{{ item.result }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>История пуста.</p>
+    {% endif %}
+  </div>
+</div>
+
+<hr>
+<section>
+  <h3>Что такое нумерология?</h3>
+  <p>
+    Нумерология — это эзотерическая дисциплина, изучающая влияние чисел на личность и судьбу человека. 
+    Наиболее популярным является подход Пифагора, где каждому числу приписываются определённые качества.
+  </p>
+</section>
+
+<script>
+function toggleInputs() {
+  const calcType = document.getElementById('calc_type').value;
+  document.getElementById('birthDateGroup').classList.toggle('d-none', calcType !== 'life_path');
+  document.getElementById('nameGroup').classList.toggle('d-none', calcType !== 'expression');
+}
+
+// Initialize correct visibility on load
+window.addEventListener('load', toggleInputs);
+</script>
+{% endblock %}

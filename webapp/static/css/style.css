@@ -1,0 +1,7 @@
+body {
+    backdrop-filter: brightness(0.9);
+}
+
+.alert-success {
+    color: #0f5132;
+}
