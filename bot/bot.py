@@ -8,7 +8,6 @@ from pathlib import Path
 import speech_recognition as sr
 from pydub import AudioSegment
 from telegram import Update
-from telegram.constants import ParseMode
 from telegram.ext import (AIORateLimiter, Application, CommandHandler,
                           ContextTypes, MessageHandler, filters)
 
@@ -127,12 +126,25 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Не удалось распознать речь.")
         return
 
-    # Very naive parsing: if contains digits and '-', treat as date; else treat as name
-    if any(ch.isdigit() for ch in text):
-        date_candidate = "".join(ch for ch in text if ch.isdigit() or ch == "-")
-        await life_cmd(update, context.__class__(args=[date_candidate]))
-    else:
-        await name_cmd(update, context.__class__(args=text.split()))
+    # Very naive parsing: if contains at least 6 digits treat as date (allow formats 1990-05-23 or 23-05-1990)
+    date_candidate = ''.join(ch for ch in text if ch.isdigit() or ch == '-')
+    if len([d for d in date_candidate if d.isdigit()]) >= 6 and '-' in date_candidate:
+        try:
+            num, desc = life_path(date_candidate)
+            add_history(update.effective_user.id, "life_path", date_candidate, num)
+            await update.message.reply_html(f"Ваше число жизненного пути: <b>{num}</b>\n{desc}")
+            return
+        except ValueError:
+            pass  # fall back to name
+
+    # Fallback: treat entire text as name
+    name = text.strip().title()
+    try:
+        num, desc = expression(name)
+        add_history(update.effective_user.id, "expression", name, num)
+        await update.message.reply_html(f"Ваше число судьбы: <b>{num}</b>\n{desc}")
+    except ValueError as e:
+        await update.message.reply_text(str(e))
 
 
 async def main():
